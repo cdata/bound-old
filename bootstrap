@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+
+hash git 2>&- && { echo "Git is available.."; } || { echo >&2 "Git is required to run bound."; exit 1; }
+
+hash node 2>&- && { echo "NodeJS is available.."; } || { echo >&2 "NodeJS is required to run bound."; exit 1; }
+
+hash npm 2>&- && { echo "NPM is available.."; } || { echo >&2 "NPM is required to install necessary NodeJS modules."; exit 1; }
+
+hash mocha 2>&- && { echo "Mocha is available.."; } || { echo -e >&2 "\n\tMocha is required to run tests but is not detected.\n\tInstall Mocha via: npm install -g mocha\n\tIgnore this message if you are not hacking on bound.\n"; }
+
+echo "Installing NPM dependencies..";
+
+npm install
+
+echo "Bound is ready to go!";

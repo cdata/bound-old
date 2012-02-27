@@ -1,0 +1,55 @@
+#!/usr/bin/env node
+
+var optimist = require('optimist'),
+    bound = require('../lib/index.js')
+    argv = optimist.usage(
+        'Usage: $0 -r <repositoryDirectory> -o <outputDirectory> [-vh]'
+    ).alias(
+        {
+            'r': 'repository',
+            'o': 'output',
+            'h': 'hook',
+            'v': 'verbose'
+        }
+    ).default(
+        {
+            'v': false,
+            'h': false
+        }
+    ).describe(
+        {
+            'r': 'The path to the repository bound should build content from.',
+            'o': 'The path where compiled output should go (e.g., your web root).',
+            'h': 'If used, a post-receive hook will be created for automatic publishing.',
+            'v': 'Enables debug logging output.'
+        }
+    ).demand(['r', 'o']).argv;
+
+bound.verbose = argv.v;
+
+console.log('Binding ' + argv.r);
+
+bound.bind(argv.r).then(
+    function(manuscript) {
+
+        manuscript.outputDirectory = argv.o;
+
+        return manuscript.publish().then(
+            function() {
+
+                if(argv.h)
+                    return bound.hook(argv.r, argv.o);
+            }
+        );
+    }
+).then(
+    function() {
+
+        console.log(argv.r + ' has been bound.');
+    },
+    function(error) {
+
+        console.error(error);
+        process.exit(1);
+    }
+);
