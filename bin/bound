@@ -13,7 +13,7 @@ var optimist = require('optimist'),
         }
     ).default(
         {
-            'v': false,
+            'v': 1,
             'h': false
         }
     ).describe(
@@ -21,7 +21,7 @@ var optimist = require('optimist'),
             'r': 'The path to the repository bound should build content from.',
             'o': 'The path where compiled output should go (e.g., your web root).',
             'h': 'If used, a post-receive hook will be created for automatic publishing.',
-            'v': 'Enables debug logging output.'
+            'v': 'Sets output verbosity to the specified level (0 - 2)'
         }
     ).demand(['r', 'o']).argv;
 

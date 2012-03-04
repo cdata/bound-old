@@ -1,6 +1,30 @@
 # Bound
 
-Bound is a static-file blog management utility, similar to [Jekyll][1]. Bound aims to provide similar static-file blogging support, with a focus on simplicity and ease of deployment.
+Bound is a static-file blog management utility, inspired by [Jekyll][1]. Bound aims to provide similar static-file blogging support, with a focus on simplicity and ease of deployment.
+
+## Installing
+
+You can not yet install Bound through NPM, but soon you will be able to like this:
+
+    npm install -g bound
+
+If you wish to hack on Bound, fork / clone the repository and run the bootstrap script:
+
+    chris-410s bound/ (master) シ ./bootstrap
+    Git is available..
+    NodeJS is available..
+    NPM is available..
+    Mocha is available..
+    Installing NPM dependencies..
+    Creating local clone of the sample blog for testing..
+    Cloning into bare repository ./sample-blog.git...
+    remote: Counting objects: 33, done.
+    remote: Compressing objects: 100% (23/23), done.
+    remote: Total 33 (delta 4), reused 32 (delta 3)
+    Unpacking objects: 100% (33/33), done.
+    Bound is ready to go!
+
+Please note that the bootstrap script is designed to run a sanity check on your environment, and generally won't install things for you (except for NPM dependencies and the sample git repository used by tests).
 
 ## How does it work?
 
@@ -25,14 +49,41 @@ Then, compile it down to a static website with Bound:
     Creating post-receive hook at bound-sample-blog.git/hooks/post-receive
     ./bound-sample-blog.git has been bound.
 
-Note that a post-receive hook as been created in the bare repo. This hook will activate Bound and republish the blog per the options in the original command every time you push to the git repository. An ls on the current directory shows that the static output has already been created:
+Note that a post-receive hook as been created in the bare repo. This hook will activate Bound and republish the blog per the options in the original command every time you push to the git repository. Inspecting the specified output directory shows that the static output has already been created:
 
-    cdata-410s tmp/ シ ls -r *
-    bound-sample-blog.git:
-    refs  packed-refs  objects  info  hooks  HEAD  description  config  branches
+    chris-410s blog-www/ シ tree
+    .
+    ├── a-sample-page.html
+    ├── entries
+    │   ├── 2012
+    │   │   └── 02
+    │   │       ├── 19
+    │   │       │   └── a-sample-post.html
+    │   │       └── 20
+    │   │           └── second-post.html
+    │   └── index.html
+    ├── humans.txt
+    ├── robots.txt
+    └── unbound
+        ├── a-sample-page.json
+        ├── entries
+        │   ├── 2012
+        │   │   └── 02
+        │   │       ├── 19
+        │   │       │   └── a-sample-post.json
+        │   │       └── 20
+        │   │           └── second-post.json
+        │   └── index.html
+        └── templates
+            ├── archive.html
+            ├── atom.xml
+            ├── entry.html
+            ├── index.html
+            ├── page.html
+            └── partials
+                └── head.html
 
-    blog-www:
-    robots.txt  page  index.html  humans.txt  entry
+    13 directories, 16 files
 
 ## How do I build my blog?
 
@@ -56,11 +107,17 @@ If this were to appear at the top of an entry, Bound will parse it as metadata, 
         title: "Remember, remember",
         date: "November 5th, 2012",
         author: "V"
+        content: {
+            html: "...",            /* HTML parsed from entry markdown */
+            markdown: "...",        /* Raw markdown as read from the original entry */
+            date: Date,             /* Date object created by parsing the date key provided */
+            filename: "filename.md" /* The original filename of the document */
+        }
     }
 
 ### Templates
 
-The current templating mechanism supported by Bound is [Swig][4]. Two templates, index.html and entry.html, are required. An optional 'partials' directory will be searched at build time, and any templates found there will also be compiled. Please refer to [Swig's documentation][4] if you have questions about how templating works.
+The current templating mechanism supported by Bound is [Swig][4], although support for multiple templating mechanisms is in the works. Three templates, index.html, entry.html and archive.html, are required. The entire templates directory structure will be walked and any templates found there will also be compiled. Please refer to [Swig's documentation][4] if you have questions about how templating works.
 
 ## Why should I use this instead of WordPress?
 

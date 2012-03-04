@@ -13,4 +13,8 @@ echo "Installing NPM dependencies..";
 
 npm install
 
+echo "Creating local clone of the sample blog for testing..";
+
+git clone --bare https://github.com/cdata/bound-sample-blog.git ./sample-blog.git
+
 echo "Bound is ready to go!";

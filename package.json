@@ -2,7 +2,7 @@
   "author": "Chris Joel <chris@scriptolo.gy> (http://scriptolo.gy)",
   "name": "bound",
   "description": "Bound is a static-file blog management tool.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repository": {
     "url": "https://github.com/cdata/bound"
   },

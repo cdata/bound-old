@@ -5,10 +5,11 @@ var mocha = require('mocha'),
     path = require('path'),
     bound = require('../lib/bound'),
     child = require('child_process'),
+    argv = require('optimist').argv,
     defer = q.defer,
     mochaIt = it;
 
-
+argv.verbose = 0;
 
 it = function(attribute, callback) {
 
@@ -163,28 +164,15 @@ describe('bound', function() {
                 });
             });
             
-            describe('.readEntry(entryFilename)', function() {
+            describe('.readEntries()', function() {
 
-                it('resolves an entry when the entry exists', function() {
+                it('resolves an array of entries populated from files', function() {
 
-                    return manuscript.readEntry('a-sample-post.md').then(
-                        function(entry) {
+                    return manuscript.readEntries().then(
+                        function(entries) {
 
-                            expect(entry).to.be.an(Object);
-                        }
-                    );
-                });
-
-                it('rejects an entry when the entry does not exist', function() {
-
-                    manuscript.readEntry('a-sample-psot.md').then(
-                        function(entry) {
-                            
-                            throw new Error('A non-existant entry should not resolve.');
-                        },
-                        function(error) {
-
-                            expect(error).to.be.an(Error);
+                            expect(entries).to.be.an(Array);
+                            expect(entries.length).to.be.greaterThan(0);
                         }
                     );
                 });
@@ -195,10 +183,10 @@ describe('bound', function() {
 
                     beforeEach(function(done) {
 
-                        manuscript.readEntry('a-sample-post.md').then(
-                            function(_entry) {
+                        manuscript.readEntries().then(
+                            function(entries) {
 
-                                entry = _entry;
+                                entry = entries[0];
                                 done();
                             },
                             function(error) {
@@ -213,28 +201,28 @@ describe('bound', function() {
                         expect(entry).to.be.an(Object);
                     });
 
-                    it('has a markdown property that is a string', function() {
+                    it('has a content property that is an object', function() {
 
-                        expect(entry).to.have.key('markdown');
-                        expect(entry.markdown).to.be.a('string');
+                        expect(entry).to.have.key('content');
+                        expect(entry.content).to.be.an(Object);
                     });
 
-                    it('has an html property that is a string', function() {
+                    it('has a content.markdown property that is a string', function() {
 
-                        expect(entry).to.have.key('html');
-                        expect(entry.html).to.be.a('string');
+                        expect(entry.content).to.have.key('markdown');
+                        expect(entry.content.markdown).to.be.a('string');
                     });
 
-                    it('has an attributes property that is an object', function() {
+                    it('has a content.html property that is a string', function() {
 
-                        expect(entry).to.have.key('attributes');
-                        expect(entry.attributes).to.be.an(Object);
+                        expect(entry.content).to.have.key('html');
+                        expect(entry.content.html).to.be.a('string');
                     });
 
-                    it('has a date property that is a date', function() {
+                    it('has a content.date property that is a date', function() {
 
-                        expect(entry).to.have.key('date');
-                        expect(entry.date).to.be.a(Date);
+                        expect(entry.content).to.have.key('date');
+                        expect(entry.content.date).to.be.a(Date);
                     });
                 });
             });
@@ -251,8 +239,12 @@ describe('bound', function() {
                             sortedEntries.forEach(
                                 function(entry) {
 
-                                    expect(entry.date).to.be.lessThan(last);
-                                    last = entry.date;
+                                    expect(entry).to.be.ok();
+                                    expect(entry.content).to.be.ok();
+                                    expect(entry.content.date).to.be.a(Date);
+                                    expect(entry.content.date).to.be.lessThan(last);
+
+                                    last = entry.content.date;
                                 }
                             );
                         }
@@ -260,27 +252,52 @@ describe('bound', function() {
                 });
             });
 
-            describe('.loadTemplate(templatePath)', function() {
+            describe('.loadTemplates()', function() {
 
-                it('resolves a template function for the given path', function() {
+                it('resolves a list of template functions for the given repository', function() {
 
-                    return manuscript.loadTemplate('index.html').then(
-                        function(template) {
+                    return manuscript.loadTemplates().then(
+                        function(templates) {
 
-                            expect(template).to.be.a(Function);
+                            expect(templates).to.be.an(Array);
+
+                            templates.forEach(
+                                function(template) {
+
+                                    expect(template).to.be.an(Object);
+                                    expect(template).to.have.key('render');
+                                    expect(template).to.have.key('content');
+                                    expect(template).to.have.key('path');
+                                }
+                            );
                         }
                     );
                 });
             });
 
-            describe('.writeIndex(pageNumber)', function() {
+            describe('.writePages()', function() {
 
-                it('creates a file for the specified page number', function() {
+                it('creates the final versions of all pages in the output directory', function() {
 
-                    return manuscript.writeIndex(0).then(
+                    return manuscript.writePages().then(
                         function() {
 
-                            return fs.exists(path.join(manuscript.outputDirectory, 'page/1')).then(
+                            return fs.exists(path.join(manuscript.outputDirectory, 'a-sample-page.html')).then(
+                                function(exists) {
+
+                                    expect(exists).to.be(true);
+                                }
+                            );
+                        }
+                    );
+                });
+
+                it('creates a series of unbound data files in the output directory', function() {
+
+                    return manuscript.writePages().then(
+                        function() {
+
+                            return fs.exists(path.join(manuscript.outputDirectory, 'unbound', 'a-sample-page.json')).then(
                                 function(exists) {
 
                                     expect(exists).to.be(true);
@@ -291,14 +308,14 @@ describe('bound', function() {
                 });
             });
 
-            describe('.writeEntry(entryFilename)', function() {
+            describe('.writeEntries()', function() {
 
-                it('creates a file for the specified entry filename', function() {
+                it('creates a chronological hierarchy of rendered entries', function() {
 
-                    return manuscript.writeEntry('a-sample-post.md').then(
+                    return manuscript.writeEntries().then(
                         function() {
 
-                            return fs.exists(path.join(manuscript.outputDirectory, 'entry/a-sample-post')).then(
+                            return fs.exists(path.join(manuscript.outputDirectory, 'entries', '2012', '02', '19', 'a-sample-post.html')).then(
                                 function(exists) {
 
                                     expect(exists).to.be(true);
@@ -307,6 +324,21 @@ describe('bound', function() {
                         }
                     );
                 });
+
+                it('creates an archival reference of all existing entries', function() {
+
+                    return manuscript.writeEntries().then(
+                        function() {
+
+                            return fs.exists(path.join(manuscript.outputDirectory, 'entries', 'index.html')).then(
+                                function(exists) {
+
+                                    expect(exists).to.be(true);
+                                }
+                            );
+                        }
+                    );
+                })
             });
 
             describe('.publish()', function() {
@@ -321,15 +353,22 @@ describe('bound', function() {
 
                                     expect(exists).to.be(true);
 
-                                    return fs.exists(path.join(manuscript.outputDirectory, 'page/1')).then(
+                                    return fs.exists(path.join(manuscript.outputDirectory, 'robots.txt')).then(
                                         function(exists) {
-                                            
+
                                             expect(exists).to.be(true);
 
-                                            return fs.exists(path.join(manuscript.outputDirectory, 'entry/a-sample-post')).then(
+                                            return fs.exists(path.join(manuscript.outputDirectory, 'a-sample-page.html')).then(
                                                 function(exists) {
-
+                                                    
                                                     expect(exists).to.be(true);
+
+                                                    return fs.exists(path.join(manuscript.outputDirectory, 'entries', '2012', '02', '19', 'a-sample-post.html')).then(
+                                                        function(exists) {
+
+                                                            expect(exists).to.be(true);
+                                                        }
+                                                    );
                                                 }
                                             );
                                         }
@@ -338,7 +377,6 @@ describe('bound', function() {
                             );
                         }
                     );
-
                 });
             });
 
@@ -362,11 +400,11 @@ describe('bound', function() {
         });
     });
 
-    describe('.cleanUp()', function() {
+    describe('.remove()', function() {
 
         it('removes the bound root directory', function() {
 
-            bound.cleanUp().then(
+            return bound.remove().then(
                 function() {
                     return fs.exists(bound.cloneDirectory).then(
                         function(exists) {
