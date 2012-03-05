@@ -5,12 +5,12 @@ var mocha = require('mocha'),
     path = require('path'),
     data = require('../lib/data'),
     bound = require('../lib/bound'),
+    utility = require('../lib/utility'),
     child = require('child_process'),
-    argv = require('optimist').argv,
     defer = q.defer,
     mochaIt = it;
 
-argv.verbose = 0;
+utility.verbosity = 0;
 
 it = function(attribute, callback) {
 

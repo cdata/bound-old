@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 var optimist = require('optimist'),
-    bound = require('../lib/index.js')
+    bound = require('../lib/index.js'),
+    utility = require('../lib/utility.js'),
     argv = optimist.usage(
         'Usage: $0 -r <repositoryDirectory> -o <outputDirectory> [-vh]'
     ).alias(
@@ -25,31 +26,35 @@ var optimist = require('optimist'),
         }
     ).demand(['r', 'o']).argv;
 
-bound.verbose = argv.v;
+utility.verbosity = argv.v;
 
-console.log('Binding ' + argv.r);
+utility.log('Binding ' + argv.r);
 
 bound.bind(argv.r).then(
     function(manuscript) {
 
         manuscript.outputDirectory = argv.o;
 
-        return manuscript.publish().then(
+        return manuscript.discard().then(
             function() {
+                return manuscript.publish().then(
+                    function() {
 
-                if(argv.h)
-                    return bound.hook(argv.r, argv.o);
+                    if(argv.h)
+                        return bound.hook(argv.r, argv.o);
+                    }
+                );
             }
         );
     }
 ).then(
     function() {
 
-        console.log(argv.r + ' has been bound.');
+        utility.log(argv.r + ' has been bound @ ' + argv.o);
     },
     function(error) {
 
-        console.error(error);
+        utility.error(error);
         process.exit(1);
     }
 );
